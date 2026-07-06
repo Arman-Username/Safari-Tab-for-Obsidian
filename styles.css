@@ -1,0 +1,4 @@
+.workspace-tab-header-container {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    will-change: transform, opacity;
+}
