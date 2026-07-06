@@ -1,0 +1,10 @@
+{
+  "id": "safari-tab-bar",
+  "name": "Safari Tab Bar",
+  "version": "1.0.0",
+  "minAppVersion": "1.4.0",
+  "description": "Auto-hides the tab bar on mobile/iPad when scrolling down, shows it when scrolling up (Safari-like behavior)",
+  "author": "Built with Grok",
+  "authorUrl": "",
+  "isDesktopOnly": false
+}
