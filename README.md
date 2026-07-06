@@ -1,0 +1,1 @@
+# Safari-Tab-for-Obsidian
