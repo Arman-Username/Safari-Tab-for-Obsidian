@@ -1,65 +1,80 @@
-/* === Liquid Glass Tab Bar === */
-.workspace-tab-header-container {
-    background: rgba(var(--color-base-00-rgb), 0.75);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-bottom: 1px solid rgba(var(--color-base-30-rgb), 0.6);
-    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1) inset;
-    transition: height 0.22s ease, 
-                transform 0.22s ease, 
-                opacity 0.22s ease,
-                min-height 0.22s ease;
-    overflow: hidden;
-    will-change: height, transform, opacity;
+/* === Sophisticated Apple Liquid Glass Tabs === */
+
+body .workspace-tab-header-container,
+.workspace .mod-root .workspace-tab-header-container {
+    /* Main glass layer */
+    background: rgba(var(--color-base-00-rgb), 0.72) !important;
+    backdrop-filter: blur(26px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(26px) saturate(180%) !important;
+
+    /* Subtle top highlight (Apple specular light) */
+    box-shadow: 
+        0 1px 0 rgba(255, 255, 255, 0.18) inset,
+        0 1px 0 rgba(255, 255, 255, 0.08) !important;
+
+    border-bottom: 1px solid rgba(var(--color-base-30-rgb), 0.55) !important;
+
+    transition: height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 /* Individual tabs */
-.workspace-tab-header {
-    background: transparent;
-    border-radius: 10px;
-    margin: 5px 3px;
-    padding: 0 10px;
-    transition: background 0.2s ease, box-shadow 0.2s ease;
-    border: 1px solid transparent;
+body .workspace-tab-header,
+.workspace .mod-root .workspace-tab-header {
+    background: rgba(var(--color-base-10-rgb), 0.28) !important;
+    border: 1px solid rgba(var(--color-base-30-rgb), 0.25) !important;
+    border-radius: 11px !important;
+    margin: 6px 4px !important;
+    padding-left: 12px !important;
+    padding-right: 8px !important;
+
+    transition: background 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
-/* Inactive tabs */
-.workspace-tab-header:not(.is-active) {
-    background: rgba(var(--color-base-10-rgb), 0.4);
-    border: 1px solid rgba(var(--color-base-30-rgb), 0.3);
+/* Inactive tabs — more translucent */
+body .workspace-tab-header:not(.is-active),
+.workspace .mod-root .workspace-tab-header:not(.is-active) {
+    background: rgba(var(--color-base-10-rgb), 0.22) !important;
 }
 
-/* Active tab - slightly stronger glass effect */
-.workspace-tab-header.is-active {
-    background: rgba(var(--color-base-00-rgb), 0.85);
-    border: 1px solid rgba(var(--color-base-30-rgb), 0.5);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
-    font-weight: 500;
+/* Active tab — lifted glass effect */
+body .workspace-tab-header.is-active,
+.workspace .mod-root .workspace-tab-header.is-active {
+    background: rgba(var(--color-base-00-rgb), 0.92) !important;
+    border: 1px solid rgba(var(--color-base-30-rgb), 0.45) !important;
+    box-shadow: 
+        0 1px 0 rgba(255, 255, 255, 0.25) inset,
+        0 2px 8px rgba(0, 0, 0, 0.12) !important;
 }
 
-/* Hover effect */
-.workspace-tab-header:hover:not(.is-active) {
-    background: rgba(var(--color-base-10-rgb), 0.6);
-    border-color: rgba(var(--color-base-30-rgb), 0.4);
+/* Hover on inactive tabs */
+body .workspace-tab-header:hover:not(.is-active),
+.workspace .mod-root .workspace-tab-header:hover:not(.is-active) {
+    background: rgba(var(--color-base-10-rgb), 0.38) !important;
+    border-color: rgba(var(--color-base-30-rgb), 0.35) !important;
 }
 
 /* Close button */
-.workspace-tab-header .workspace-tab-header-inner-close-button {
-    opacity: 0.6;
-    transition: opacity 0.2s ease;
+body .workspace-tab-header .workspace-tab-header-inner-close-button {
+    opacity: 0.6 !important;
+    transition: opacity 0.2s ease !important;
 }
 
-.workspace-tab-header:hover .workspace-tab-header-inner-close-button {
-    opacity: 1;
+body .workspace-tab-header:hover .workspace-tab-header-inner-close-button {
+    opacity: 1 !important;
 }
 
-/* === Hidden state (from the plugin) === */
-.workspace-tab-header-container.safari-tab-bar-hidden {
+/* Hidden state (from plugin) */
+body .workspace-tab-header-container.safari-tab-bar-hidden {
     height: 0 !important;
     min-height: 0 !important;
-    transform: translateY(-100%);
-    opacity: 0;
-    overflow: hidden;
-    pointer-events: none;
-    border-bottom: none;
+    transform: translateY(-100%) !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    border-bottom: none !important;
+    box-shadow: none !important;
 }
