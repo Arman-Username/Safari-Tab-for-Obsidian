@@ -1,166 +1,65 @@
-const { Plugin, Setting, PluginSettingTab } = require('obsidian');
-
-const DEFAULT_SETTINGS = {
-    enabled: true,
-    hideThreshold: 60,
-    animationDuration: 220
-};
-
-class SafariTabBarPlugin extends Plugin {
-    async onload() {
-        await this.loadSettings();
-
-        if (!this.app.isMobile) return;
-
-        this.addSettingTab(new SafariTabBarSettingTab(this.app, this));
-
-        this.addCommand({
-            id: 'toggle-safari-tab-bar',
-            name: 'Toggle Safari Tab Bar',
-            callback: () => {
-                this.settings.enabled = !this.settings.enabled;
-                this.saveSettings();
-                if (this.settings.enabled) {
-                    this.enableAutoHide();
-                } else {
-                    this.disableAutoHide();
-                }
-            }
-        });
-
-        if (this.settings.enabled) {
-            this.enableAutoHide();
-        }
-    }
-
-    enableAutoHide() {
-        this.lastScrollY = 0;
-        this.isHidden = false;
-
-        this.registerEvent(
-            this.app.workspace.on('active-leaf-change', () => this.attachScrollListener())
-        );
-
-        this.attachScrollListener();
-    }
-
-    disableAutoHide() {
-        const tabBar = document.querySelector('.workspace-tab-header-container');
-        if (tabBar) tabBar.classList.remove('safari-tab-bar-hidden');
-    }
-
-    attachScrollListener() {
-        const leaf = this.app.workspace.activeLeaf;
-        if (!leaf) return;
-
-        // Improved selectors for both Live Preview and Reading View
-        let scroller = leaf.view.containerEl.querySelector('.cm-scroller');
-
-        if (!scroller) {
-            // Reading View selectors (more reliable)
-            scroller = leaf.view.containerEl.querySelector('.markdown-reading-view .markdown-preview-view') ||
-                       leaf.view.containerEl.querySelector('.markdown-reading-view') ||
-                       leaf.view.containerEl;
-        }
-
-        if (!scroller) return;
-
-        if (this.scrollHandler) {
-            scroller.removeEventListener('scroll', this.scrollHandler);
-        }
-
-        this.scrollHandler = (e) => {
-            if (!this.settings.enabled) return;
-
-            const currentScrollY = e.target.scrollTop;
-            const tabBar = document.querySelector('.workspace-tab-header-container');
-            if (!tabBar) return;
-
-            const diff = currentScrollY - this.lastScrollY;
-
-            if (currentScrollY <= this.settings.hideThreshold) {
-                this.showTabBar(tabBar);
-            } else if (diff > 8 && !this.isHidden) {
-                this.hideTabBar(tabBar);
-            } else if (diff < -8 && this.isHidden) {
-                this.showTabBar(tabBar);
-            }
-
-            this.lastScrollY = currentScrollY;
-        };
-
-        scroller.addEventListener('scroll', this.scrollHandler, { passive: true });
-    }
-
-    hideTabBar(tabBar) {
-        tabBar.classList.add('safari-tab-bar-hidden');
-        this.isHidden = true;
-    }
-
-    showTabBar(tabBar) {
-        tabBar.classList.remove('safari-tab-bar-hidden');
-        this.isHidden = false;
-    }
-
-    async loadSettings() {
-        this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
-    }
-
-    async saveSettings() {
-        await this.saveData(this.settings);
-    }
-
-    onunload() {
-        this.disableAutoHide();
-    }
+/* === Liquid Glass Tab Bar === */
+.workspace-tab-header-container {
+    background: rgba(var(--color-base-00-rgb), 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(var(--color-base-30-rgb), 0.6);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+    transition: height 0.22s ease, 
+                transform 0.22s ease, 
+                opacity 0.22s ease,
+                min-height 0.22s ease;
+    overflow: hidden;
+    will-change: height, transform, opacity;
 }
 
-class SafariTabBarSettingTab extends PluginSettingTab {
-    constructor(app, plugin) {
-        super(app, plugin);
-        this.plugin = plugin;
-    }
-
-    display() {
-        const { containerEl } = this;
-        containerEl.empty();
-
-        containerEl.createEl('h2', { text: 'Safari Tab Bar' });
-
-        new Setting(containerEl)
-            .setName('Enable auto-hide on mobile')
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.enabled)
-                .onChange(async (value) => {
-                    this.plugin.settings.enabled = value;
-                    await this.plugin.saveSettings();
-                    if (value) this.plugin.enableAutoHide();
-                    else this.plugin.disableAutoHide();
-                }));
-
-        new Setting(containerEl)
-            .setName('Scroll threshold (px)')
-            .setDesc('How far you need to scroll before hiding')
-            .addSlider(slider => slider
-                .setLimits(20, 150, 10)
-                .setValue(this.plugin.settings.hideThreshold)
-                .setDynamicTooltip()
-                .onChange(async (value) => {
-                    this.plugin.settings.hideThreshold = value;
-                    await this.plugin.saveSettings();
-                }));
-
-        new Setting(containerEl)
-            .setName('Animation speed (ms)')
-            .addSlider(slider => slider
-                .setLimits(100, 400, 20)
-                .setValue(this.plugin.settings.animationDuration)
-                .setDynamicTooltip()
-                .onChange(async (value) => {
-                    this.plugin.settings.animationDuration = value;
-                    await this.plugin.saveSettings();
-                }));
-    }
+/* Individual tabs */
+.workspace-tab-header {
+    background: transparent;
+    border-radius: 10px;
+    margin: 5px 3px;
+    padding: 0 10px;
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid transparent;
 }
 
-module.exports = SafariTabBarPlugin;
+/* Inactive tabs */
+.workspace-tab-header:not(.is-active) {
+    background: rgba(var(--color-base-10-rgb), 0.4);
+    border: 1px solid rgba(var(--color-base-30-rgb), 0.3);
+}
+
+/* Active tab - slightly stronger glass effect */
+.workspace-tab-header.is-active {
+    background: rgba(var(--color-base-00-rgb), 0.85);
+    border: 1px solid rgba(var(--color-base-30-rgb), 0.5);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    font-weight: 500;
+}
+
+/* Hover effect */
+.workspace-tab-header:hover:not(.is-active) {
+    background: rgba(var(--color-base-10-rgb), 0.6);
+    border-color: rgba(var(--color-base-30-rgb), 0.4);
+}
+
+/* Close button */
+.workspace-tab-header .workspace-tab-header-inner-close-button {
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.workspace-tab-header:hover .workspace-tab-header-inner-close-button {
+    opacity: 1;
+}
+
+/* === Hidden state (from the plugin) === */
+.workspace-tab-header-container.safari-tab-bar-hidden {
+    height: 0 !important;
+    min-height: 0 !important;
+    transform: translateY(-100%);
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border-bottom: none;
+}
