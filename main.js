@@ -46,18 +46,22 @@ class SafariTabBarPlugin extends Plugin {
 
     disableAutoHide() {
         const tabBar = document.querySelector('.workspace-tab-header-container');
-        if (tabBar) {
-            tabBar.classList.remove('safari-tab-bar-hidden');
-        }
+        if (tabBar) tabBar.classList.remove('safari-tab-bar-hidden');
     }
 
     attachScrollListener() {
         const leaf = this.app.workspace.activeLeaf;
         if (!leaf) return;
 
-        const scroller = leaf.view.containerEl.querySelector('.cm-scroller') ||
-                        leaf.view.containerEl.querySelector('.markdown-reading-view') ||
-                        leaf.view.containerEl;
+        // Improved selectors for both Live Preview and Reading View
+        let scroller = leaf.view.containerEl.querySelector('.cm-scroller');
+
+        if (!scroller) {
+            // Reading View selectors (more reliable)
+            scroller = leaf.view.containerEl.querySelector('.markdown-reading-view .markdown-preview-view') ||
+                       leaf.view.containerEl.querySelector('.markdown-reading-view') ||
+                       leaf.view.containerEl;
+        }
 
         if (!scroller) return;
 
@@ -136,7 +140,7 @@ class SafariTabBarSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Scroll threshold (px)')
-            .setDesc('How far down you need to scroll before it hides')
+            .setDesc('How far you need to scroll before hiding')
             .addSlider(slider => slider
                 .setLimits(20, 150, 10)
                 .setValue(this.plugin.settings.hideThreshold)
@@ -147,7 +151,7 @@ class SafariTabBarSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Animation speed')
+            .setName('Animation speed (ms)')
             .addSlider(slider => slider
                 .setLimits(100, 400, 20)
                 .setValue(this.plugin.settings.animationDuration)
