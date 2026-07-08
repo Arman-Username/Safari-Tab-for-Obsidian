@@ -2,25 +2,21 @@ const { Plugin, Setting, PluginSettingTab } = require('obsidian');
 
 const DEFAULT_SETTINGS = {
     enabled: true,
-    hideThreshold: 50,
-    animationDuration: 200
+    hideThreshold: 60,
+    animationDuration: 220
 };
 
 class SafariTabBarPlugin extends Plugin {
     async onload() {
         await this.loadSettings();
 
-        // Only run on mobile/tablet
-        if (!this.app.isMobile) {
-            console.log('Safari Tab Bar: Disabled on desktop');
-            return;
-        }
+        if (!this.app.isMobile) return;
 
         this.addSettingTab(new SafariTabBarSettingTab(this.app, this));
 
         this.addCommand({
             id: 'toggle-safari-tab-bar',
-            name: 'Toggle Safari Tab Bar Auto-Hide',
+            name: 'Toggle Safari Tab Bar',
             callback: () => {
                 this.settings.enabled = !this.settings.enabled;
                 this.saveSettings();
@@ -35,34 +31,23 @@ class SafariTabBarPlugin extends Plugin {
         if (this.settings.enabled) {
             this.enableAutoHide();
         }
-
-        console.log('Safari Tab Bar plugin loaded');
     }
 
     enableAutoHide() {
         this.lastScrollY = 0;
         this.isHidden = false;
 
-        // Listen for active leaf changes
         this.registerEvent(
-            this.app.workspace.on('active-leaf-change', () => {
-                this.attachScrollListener();
-            })
+            this.app.workspace.on('active-leaf-change', () => this.attachScrollListener())
         );
 
-        // Attach to current leaf
         this.attachScrollListener();
     }
 
     disableAutoHide() {
-        if (this.scrollHandler) {
-            const tabBar = document.querySelector('.workspace-tab-header-container');
-            if (tabBar) {
-                tabBar.style.transition = '';
-                tabBar.style.transform = '';
-                tabBar.style.opacity = '';
-            }
-            this.scrollHandler = null;
+        const tabBar = document.querySelector('.workspace-tab-header-container');
+        if (tabBar) {
+            tabBar.classList.remove('safari-tab-bar-hidden');
         }
     }
 
@@ -70,14 +55,12 @@ class SafariTabBarPlugin extends Plugin {
         const leaf = this.app.workspace.activeLeaf;
         if (!leaf) return;
 
-        // Try to find the scrollable content area
         const scroller = leaf.view.containerEl.querySelector('.cm-scroller') ||
                         leaf.view.containerEl.querySelector('.markdown-reading-view') ||
                         leaf.view.containerEl;
 
         if (!scroller) return;
 
-        // Remove old listener if exists
         if (this.scrollHandler) {
             scroller.removeEventListener('scroll', this.scrollHandler);
         }
@@ -92,13 +75,10 @@ class SafariTabBarPlugin extends Plugin {
             const diff = currentScrollY - this.lastScrollY;
 
             if (currentScrollY <= this.settings.hideThreshold) {
-                // Near the top → show tab bar
                 this.showTabBar(tabBar);
-            } else if (diff > 5 && !this.isHidden) {
-                // Scrolling down → hide
+            } else if (diff > 8 && !this.isHidden) {
                 this.hideTabBar(tabBar);
-            } else if (diff < -5 && this.isHidden) {
-                // Scrolling up → show
+            } else if (diff < -8 && this.isHidden) {
                 this.showTabBar(tabBar);
             }
 
@@ -109,16 +89,12 @@ class SafariTabBarPlugin extends Plugin {
     }
 
     hideTabBar(tabBar) {
-        tabBar.style.transition = `transform ${this.settings.animationDuration}ms ease, opacity ${this.settings.animationDuration}ms ease`;
-        tabBar.style.transform = 'translateY(-100%)';
-        tabBar.style.opacity = '0';
+        tabBar.classList.add('safari-tab-bar-hidden');
         this.isHidden = true;
     }
 
     showTabBar(tabBar) {
-        tabBar.style.transition = `transform ${this.settings.animationDuration}ms ease, opacity ${this.settings.animationDuration}ms ease`;
-        tabBar.style.transform = 'translateY(0)';
-        tabBar.style.opacity = '1';
+        tabBar.classList.remove('safari-tab-bar-hidden');
         this.isHidden = false;
     }
 
@@ -145,28 +121,24 @@ class SafariTabBarSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        containerEl.createEl('h2', { text: 'Safari Tab Bar Settings' });
+        containerEl.createEl('h2', { text: 'Safari Tab Bar' });
 
         new Setting(containerEl)
-            .setName('Enable auto-hide')
-            .setDesc('Hide tab bar when scrolling down on mobile/iPad')
+            .setName('Enable auto-hide on mobile')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.enabled)
                 .onChange(async (value) => {
                     this.plugin.settings.enabled = value;
                     await this.plugin.saveSettings();
-                    if (value) {
-                        this.plugin.enableAutoHide();
-                    } else {
-                        this.plugin.disableAutoHide();
-                    }
+                    if (value) this.plugin.enableAutoHide();
+                    else this.plugin.disableAutoHide();
                 }));
 
         new Setting(containerEl)
-            .setName('Hide threshold (px)')
-            .setDesc('How far you need to scroll before hiding starts')
+            .setName('Scroll threshold (px)')
+            .setDesc('How far down you need to scroll before it hides')
             .addSlider(slider => slider
-                .setLimits(0, 150, 10)
+                .setLimits(20, 150, 10)
                 .setValue(this.plugin.settings.hideThreshold)
                 .setDynamicTooltip()
                 .onChange(async (value) => {
@@ -175,10 +147,9 @@ class SafariTabBarSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Animation speed (ms)')
-            .setDesc('How fast the tab bar hides/shows')
+            .setName('Animation speed')
             .addSlider(slider => slider
-                .setLimits(100, 500, 50)
+                .setLimits(100, 400, 20)
                 .setValue(this.plugin.settings.animationDuration)
                 .setDynamicTooltip()
                 .onChange(async (value) => {
